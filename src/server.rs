@@ -915,11 +915,15 @@ fn update_sync_server(
     }
 }
 
-pub struct QuinnetServerPlugin {}
+pub struct QuinnetServerPlugin {
+    pub initialize_later: bool,
+}
 
 impl Default for QuinnetServerPlugin {
     fn default() -> Self {
-        Self {}
+        Self {
+            initialize_later: false,
+        }
     }
 }
 
@@ -928,7 +932,9 @@ impl Plugin for QuinnetServerPlugin {
         app.add_event::<ConnectionEvent>()
             .add_event::<ConnectionLostEvent>();
 
-        app.init_resource::<Server>();
+        if !self.initialize_later {
+            app.init_resource::<Server>();
+        }
 
         app.add_system(
             update_sync_server

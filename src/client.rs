@@ -303,11 +303,15 @@ fn update_sync_client(
     }
 }
 
-pub struct QuinnetClientPlugin {}
+pub struct QuinnetClientPlugin {
+    pub initialize_later: bool,
+}
 
 impl Default for QuinnetClientPlugin {
     fn default() -> Self {
-        Self {}
+        Self {
+            initialize_later: false,
+        }
     }
 }
 
@@ -319,7 +323,9 @@ impl Plugin for QuinnetClientPlugin {
             .add_event::<CertTrustUpdateEvent>()
             .add_event::<CertConnectionAbortEvent>();
 
-        app.init_resource::<Client>();
+        if !self.initialize_later {
+            app.init_resource::<Client>();
+        }
 
         app.add_system(
             update_sync_client
