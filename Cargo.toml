@@ -12,7 +12,7 @@ readme = "README.md"
 exclude = ["assets/"]
 
 [dependencies]
-bevy = { version = "0.9.0", default-features = false, features = [] }
+bevy = { version = "0.9", git = "https://github.com/bevyengine/bevy", rev="1ffeff19f9e01f68cd24d64d2bf281926da90d58", default-features = false }
 rustls = { version = "0.20.6", default-features = false, features = ["quic", "dangerous_configuration"] }
 rustls-pemfile = "1.0.1"
 ring = "0.16.20"
@@ -30,12 +30,12 @@ base64 = "0.13.1"
 thiserror = "1.0.37"
 
 [dev-dependencies]
-bevy = { version = "0.9.0", default-features = false, features = ["bevy_asset", "bevy_audio", "vorbis", "bevy_winit", "render"] }
+bevy = { version = "0.9",git = "https://github.com/bevyengine/bevy", rev="1ffeff19f9e01f68cd24d64d2bf281926da90d58",  default-features = false, features = ["bevy_asset", "bevy_audio", "vorbis", "bevy_winit", "bevy_render"] }
 rand = "0.8.5"
 
-[[example]]
-name = "breakout"
-path = "examples/breakout/breakout.rs"
+# [[example]]
+# name = "breakout"
+# path = "examples/breakout/breakout.rs"
 
 [[example]]
 name = "chat-server"
