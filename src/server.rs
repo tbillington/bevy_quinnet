@@ -618,7 +618,29 @@ pub struct Server {
     endpoint: Option<Endpoint>,
 }
 
+impl FromWorld for Server {
+    fn from_world(world: &mut World) -> Self {
+        if world.get_resource::<AsyncRuntime>().is_none() {
+            let async_runtime = tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()
+                .unwrap();
+            world.insert_resource(AsyncRuntime(async_runtime));
+        };
+
+        let runtime = world.resource::<AsyncRuntime>();
+        Server::new(runtime.handle().clone())
+    }
+}
+
 impl Server {
+    fn new(runtime: tokio::runtime::Handle) -> Self {
+        Self {
+            endpoint: None,
+            runtime,
+        }
+    }
+
     pub fn endpoint(&self) -> &Endpoint {
         self.endpoint.as_ref().unwrap()
     }
@@ -847,13 +869,6 @@ async fn client_connection_task(
     }
 }
 
-fn create_server(mut commands: Commands, runtime: Res<AsyncRuntime>) {
-    commands.insert_resource(Server {
-        endpoint: None,
-        runtime: runtime.handle().clone(),
-    });
-}
-
 // Receive messages from the async server tasks and update the sync server.
 fn update_sync_server(
     mut server: ResMut<Server>,
@@ -911,17 +926,14 @@ impl Default for QuinnetServerPlugin {
 impl Plugin for QuinnetServerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ConnectionEvent>()
-            .add_event::<ConnectionLostEvent>()
-            .add_startup_system_to_stage(StartupStage::PreStartup, create_server)
-            .add_system_to_stage(CoreStage::PreUpdate, update_sync_server);
+            .add_event::<ConnectionLostEvent>();
 
-        if app.world.get_resource_mut::<AsyncRuntime>().is_none() {
-            app.insert_resource(AsyncRuntime(
-                tokio::runtime::Builder::new_multi_thread()
-                    .enable_all()
-                    .build()
-                    .unwrap(),
-            ));
-        }
+        app.init_resource::<Server>();
+
+        app.add_system(
+            update_sync_server
+                .in_base_set(CoreSet::PreUpdate)
+                .run_if(resource_exists::<Server>()),
+        );
     }
 }
